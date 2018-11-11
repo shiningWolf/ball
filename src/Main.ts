@@ -30,6 +30,7 @@
 class Main extends eui.UILayer {
  
     private label:egret.TextField
+    private startDraw:Boolean  //是否开始绘制线段
     protected createChildren(): void {
         super.createChildren();
 
@@ -99,6 +100,7 @@ class Main extends eui.UILayer {
      * Create scene interface
      */
     protected createGameScene(): void {
+       this.startDraw = false;
        this. createBorder();
        this.createText();
     }
@@ -126,13 +128,19 @@ class Main extends eui.UILayer {
         shp.graphics.moveTo( (this.stage.stageWidth-between)/2+between, lineY+20);
         shp.graphics.lineTo(this.stage.stageWidth-leftoffset,lineY+20);
         shp.graphics.endFill();
-        shp.graphics.beginFill( 0xff0000, 1);
-        shp.graphics.drawCircle( this.stage.stageWidth/2,lineY + 20+circleD, circleD );
-        shp.graphics.endFill();
         shp.graphics.beginFill( 0xffffff, 1);
         shp.graphics.drawCircle( this.stage.stageWidth/2,lineY - 5 - circleD, circleD );
         shp.graphics.endFill();
         this.addChild( shp );
+        let ball = new egret.Shape();
+        ball.graphics.beginFill( 0xffffff, 1);
+        ball.graphics.drawCircle( this.stage.stageWidth/2,lineY + 20+circleD, circleD );
+        ball.graphics.endFill();
+        this.addChild(ball);
+        ball.touchEnabled = true;
+        ball.addEventListener( egret.TouchEvent.TOUCH_BEGIN, this.onTouch, this);
+        this.stage.addEventListener( egret.TouchEvent.TOUCH_MOVE, this.onTouchMove, this);
+        this.stage.addEventListener( egret.TouchEvent.TOUCH_END, this.onTouchEnd, this);
     }
 
     protected createText():void{
@@ -141,5 +149,25 @@ class Main extends eui.UILayer {
         this.label.x = this.stage.stageWidth - 100;
         this.label.y = 50;
         this.addChild( this.label );
+    }
+    private line:egret.Shape;
+    private startPos:Array<number>;
+    private onTouch(evt:egret.TouchEvent){
+         this.startDraw = true;
+         this.startPos = [evt.stageX,evt.stageY];
+    }
+    private onTouchMove(evt:egret.TouchEvent){
+        if(this.startDraw){
+            if(this.line) this.removeChild (this.line);
+            this.line = new egret.Shape();
+            this.line.graphics.lineStyle( 2, 0x00ff00 );
+            this.line.graphics.moveTo(this.startPos[0],this.startPos[1]);
+            this.line.graphics.lineTo(evt.stageX,evt.stageY);
+            this.line.graphics.endFill();
+            this.addChild(this.line);
+        }
+    }
+    private onTouchEnd(evt:egret.TouchEvent){
+        this.startDraw = false;
     }
 }

@@ -165,6 +165,7 @@ var Main = (function (_super) {
      * Create scene interface
      */
     Main.prototype.createGameScene = function () {
+        this.startDraw = false;
         this.createBorder();
         this.createText();
     };
@@ -191,13 +192,19 @@ var Main = (function (_super) {
         shp.graphics.moveTo((this.stage.stageWidth - between) / 2 + between, lineY + 20);
         shp.graphics.lineTo(this.stage.stageWidth - leftoffset, lineY + 20);
         shp.graphics.endFill();
-        shp.graphics.beginFill(0xff0000, 1);
-        shp.graphics.drawCircle(this.stage.stageWidth / 2, lineY + 20 + circleD, circleD);
-        shp.graphics.endFill();
         shp.graphics.beginFill(0xffffff, 1);
         shp.graphics.drawCircle(this.stage.stageWidth / 2, lineY - 5 - circleD, circleD);
         shp.graphics.endFill();
         this.addChild(shp);
+        var ball = new egret.Shape();
+        ball.graphics.beginFill(0xffffff, 1);
+        ball.graphics.drawCircle(this.stage.stageWidth / 2, lineY + 20 + circleD, circleD);
+        ball.graphics.endFill();
+        this.addChild(ball);
+        ball.touchEnabled = true;
+        ball.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.onTouch, this);
+        this.stage.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.onTouchMove, this);
+        this.stage.addEventListener(egret.TouchEvent.TOUCH_END, this.onTouchEnd, this);
     };
     Main.prototype.createText = function () {
         this.label = new egret.TextField();
@@ -205,6 +212,25 @@ var Main = (function (_super) {
         this.label.x = this.stage.stageWidth - 100;
         this.label.y = 50;
         this.addChild(this.label);
+    };
+    Main.prototype.onTouch = function (evt) {
+        this.startDraw = true;
+        this.startPos = [evt.stageX, evt.stageY];
+    };
+    Main.prototype.onTouchMove = function (evt) {
+        if (this.startDraw) {
+            if (this.line)
+                this.removeChild(this.line);
+            this.line = new egret.Shape();
+            this.line.graphics.lineStyle(2, 0x00ff00);
+            this.line.graphics.moveTo(this.startPos[0], this.startPos[1]);
+            this.line.graphics.lineTo(evt.stageX, evt.stageY);
+            this.line.graphics.endFill();
+            this.addChild(this.line);
+        }
+    };
+    Main.prototype.onTouchEnd = function (evt) {
+        this.startDraw = false;
     };
     return Main;
 }(eui.UILayer));
